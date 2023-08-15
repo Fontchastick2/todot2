@@ -1,3 +1,13 @@
-1- sauvegarder et restituer une valeur
 2- redefinir finalement l'utilité de l'app en 5 phrases minimum
-3- refaire le design
+3- refaire le design intro home
+4- créer le script de création des 
+
+L'app est un agenda qui enregistre les actions à accomplir.
+L'utilisatuer entre, il se crée une tache suivant la methode smart. et il l'accomplit.
+Il peut faire des séries d'actions et ainsi ne pas rompre la chaîne.
+
+il faut, une classe tâches, une autre
+Elle render chaque jour, ce que l'utilisateur a à faire.
+L'utilisateur peut prévoir sous plusieurs jours ce qu'il a à faire.
+Chaque jour elle donne des statistiques sur l'utilisateur.
+Plus loin, elle synchronise les activités avec le calendrier.

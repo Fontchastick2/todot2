@@ -1,6 +1,6 @@
-2- redefinir finalement l'utilité de l'app en 5 phrases minimum
-3- refaire le design intro home
-4- créer le script de création des 
+4- créer le script de création des premieres données
+5- créer le design de la page add task
+6- implémenter le design de la page add task
 
 L'app est un agenda qui enregistre les actions à accomplir.
 L'utilisatuer entre, il se crée une tache suivant la methode smart. et il l'accomplit.
@@ -11,3 +11,6 @@ Elle render chaque jour, ce que l'utilisateur a à faire.
 L'utilisateur peut prévoir sous plusieurs jours ce qu'il a à faire.
 Chaque jour elle donne des statistiques sur l'utilisateur.
 Plus loin, elle synchronise les activités avec le calendrier.
+
+Chaque joue affiche son résultat, son nombre de taches, nombre de tâches executées, son id, 
+Chaque mission a un id, un titre, une description, une durée, une heure de départ, une fréquence

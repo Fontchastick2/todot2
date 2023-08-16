@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Button, Dimensions } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Database, Day } from '../services/database.service';
 
 const screenWidth= Dimensions.get('window').width;
 const screenHeight= Dimensions.get('screen').height;
@@ -12,11 +13,29 @@ const myTasks= [
 ]
 
 class Home extends React.Component {
+  db = new Database();
+
   constructor(props:any) {
     super(props)
     this.state = {
     }
+    this.initialise()
   }
+
+  initialise() {
+    let today: Day;
+    if(this.db.getDay(new Date().toLocaleDateString()) === undefined) {
+      today = new Day(new Date().toLocaleDateString(), "Awaiting for results");
+      this.db.addDay(today);
+      console.log("test")
+    }else{
+      today = this.db.getDay(new Date().toLocaleDateString()) as unknown as Day;
+      console.log(today.result)
+    }
+
+  }
+
+
   render() {
     return (
       <View style={{height: screenHeight, paddingTop: 40}}>

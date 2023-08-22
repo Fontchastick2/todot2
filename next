@@ -1,14 +1,11 @@
-4- créer le script de création des premieres données
-5- créer le design de la page add task
-6- implémenter le design de la page add task
+11- faire le design d'affichage des infos de la mission
+12- réaliser les infos de la mission
+13- pouvoir cocher une activité comme faite
 
-L'app est un agenda qui enregistre les actions à accomplir.
-L'utilisatuer entre, il se crée une tache suivant la methode smart. et il l'accomplit.
-Il peut faire des séries d'actions et ainsi ne pas rompre la chaîne.
+cliquer sur le résultat change le résultat
+cliquer sur le cadrant ouvre l'overlay
+maintenir ouvre le modal
 
-il faut, une classe tâches, une autre
-Elle render chaque jour, ce que l'utilisateur a à faire.
-L'utilisateur peut prévoir sous plusieurs jours ce qu'il a à faire.
 Chaque jour elle donne des statistiques sur l'utilisateur.
 Plus loin, elle synchronise les activités avec le calendrier.
 

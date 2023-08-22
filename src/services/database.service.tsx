@@ -1,34 +1,62 @@
 import * as SQLite from 'expo-sqlite'
 
-
-const db = SQLite.openDatabase('mydb', '1.0', 'Test DB', 2 * 1024 * 1024) // returns Database object
-
 export class Database {
 
-    constructor(){
+    db: SQLite.SQLiteDatabase;
+
+    constructor(db: SQLite.SQLiteDatabase){
+        this.db = db;
         db.transaction(function (tx) { 
+            tx.executeSql('BEGIN TRANSACTION'); 
+            //tx.executeSql('DROP TABLE MISSIONS'); 
+            // tx.executeSql('DROP TABLE IF EXISTS DAYS'); 
+            //tx.executeSql('DROP TABLE TASKS'); 
+
             tx.executeSql('CREATE TABLE IF NOT EXISTS DAYS (id unique, log)'); 
-            tx.executeSql('CREATE TABLE IF NOT EXISTS TASKS (id PRIMARY KEY, title VARCHAR, duration INTEGER, description VARCHAR, status ENUM, from CHAR 12, to CHAR 12, days SET)'); 
-            console.log("initialised")
+            tx.executeSql('CREATE TABLE IF NOT EXISTS MISSIONS (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, duration INTEGER, description TEXT, startAt TEXT, endAt TEXt)');//from CHAR 12, to CHAR 12)'); 
+            tx.executeSql('CREATE TABLE IF NOT EXISTS TASKS (id INTEGER PRIMARY KEY AUTOINCREMENT, dayId TEXT, missionId INTEGER, status TEXT)'); 
+            tx.executeSql('COMMIT'); 
          });
-        
+         
     }
 
     addTask(task: any) {
-        db.transaction(function (tx) { 
+        this.db.transaction(function (tx) { 
             tx.executeSql(`INSERT INTO TASKS VALUES (${task.id}, ${task.title}, ${task.duration}, ${task.description}, 0, ${task.from}, ${task.to}, ${task.days})`); 
         });
     }
+//WHERE dayId = ? INNER JOIN MISSIONS ON MISSIONS.id = TASKS.missionId
+    getTasks(day: string): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.db.transaction(function (tx) { 
+                tx.executeSql('SELECT * FROM TASKS INNER JOIN MISSIONS ON MISSIONS.id = TASKS.missionId WHERE dayId = ?',[day], (_, { rows }) =>{
+                    console.log(JSON.stringify(rows))
+                    resolve(rows);
+                }, (error) => {
+                    reject(error);
+                }); 
+            });
+        })
+    }
 
     addDay(day: Day) {
-        db.transaction(function (tx) { 
-            tx.executeSql(`INSERT INTO DAYS (id, result) VALUES (${day.id}, ${day.result})`); 
+        this.db.transaction(function (tx) { 
+            tx.executeSql('INSERT INTO DAYS VALUES (?, ?)', [day.id, day.result]); 
         });
     }
 
     getDay(id: string) {
-        db.transaction(function (tx) { 
+        this.db.transaction(function (tx) { 
             tx.executeSql('SELECT * FROM DAYS WHERE id='+ id,[], (_, { rows }) =>{
+                console.log(JSON.stringify(rows))
+                return rows;
+            }); 
+        });
+    }
+
+    getDays() {
+        this.db.transaction(function (tx) { 
+            tx.executeSql('SELECT * FROM DAYS',[], (_, { rows }) =>{
                 console.log(JSON.stringify(rows))
 
                 return rows;
@@ -37,22 +65,31 @@ export class Database {
         });
     }
 
-    getDays() {
-        db.transaction(function (tx) { 
-            tx.executeSql('SELECT * FROM DAYS',[], (_, { rows }) =>{
-                return rows;
-            }
-          ); 
+    addMission(task: Mission) {
+        console.log(task)
+        this.db.transaction(function (tx) { 
+            tx.executeSql('INSERT INTO MISSIONS (title, duration, description, startAt, endAt) VALUES (?, ?, ?, ?, ?)', [task.title, task.duration!, task.description!, task.from.toDateString(), task.to.toDateString()],
+                function (tx, event) {
+                    let end = new Date(task.to)
+                    if(event.insertId){
+                        for(let start = new Date(task.from); start < end || start.toDateString() === end.toDateString() ; start = new Date(start.getTime() + 86400000)){
+                            console.log(start)
+                            tx.executeSql('INSERT INTO TASKS (dayId, missionId, status) VALUES (?, ?, ?)', [start.toDateString(), event.insertId, TaskStatut.PENDING])
+                        }
+                    }
+                }
+            );
         });
     }
-  
-    // transaction() {
-    //   db.transaction(function (tx) { 
-    //     tx.executeSql('SELECT * FROM LOGS',[], (_, { rows }) =>
-    //     console.log(JSON.stringify(rows))
-    //   ); 
-    //   });
-    // }
+
+    getMissions() {
+        this.db.transaction(function (tx) { 
+            tx.executeSql('SELECT * FROM MISSIONS',[], (_, { rows }) =>{
+                console.log(JSON.stringify(rows))
+                return rows;
+            }); 
+        });
+    }
   
 }
 
@@ -64,4 +101,26 @@ export class Day{
         this.id = id;
         this.result = result;
     }
+}
+
+export class Mission{
+    id: string = "";
+    title: string;
+    duration?: number; 
+    description?: string;
+    from: Date =new Date(); 
+    to: Date = new Date();
+    days?: any[];
+    status= TaskStatut.PENDING;
+
+    constructor(title: string, ) {
+        this.title= title;
+
+    }
+}
+
+export enum TaskStatut {
+    PENDING = "pending",
+    DONE = "done",
+    FAILED= "failed"
 }

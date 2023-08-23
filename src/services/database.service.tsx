@@ -47,8 +47,9 @@ export class Database {
     }
 
     removeMission(missionId: any) {
+        console.log(missionId)
         this.db.transaction(function (tx) { 
-            tx.executeSql('UPDATE MISSIONS SET deleted = 0 WHERE id = ?', [missionId] ); 
+            tx.executeSql('UPDATE MISSIONS SET deleted = 1 WHERE id = ?', [missionId], ()=> {}, (error) => {console.log(error)} ); 
         });
     }
 
@@ -81,7 +82,7 @@ export class Database {
     addMission(task: Mission) {
         console.log(task)
         this.db.transaction(function (tx) { 
-            tx.executeSql('INSERT INTO MISSIONS (title, time, duration, description, startAt, endAt, deleted) VALUES (?, ?, ?, ?, ?, 0)', [task.title, task.time!, task.duration!, task.description!, task.from.toDateString(), task.to.toDateString()],
+            tx.executeSql('INSERT INTO MISSIONS (title, time, duration, description, startAt, endAt, deleted) VALUES (?, ?, ?, ?, ?, ?, 0)', [task.title, task.time!, task.duration!, task.description!, task.from.toDateString(), task.to.toDateString()],
                 function (tx, event) {
                     let end = new Date(task.to)
                     if(event.insertId){

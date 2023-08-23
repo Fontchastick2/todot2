@@ -1,6 +1,5 @@
-11- faire le design d'affichage des infos de la mission
-12- réaliser les infos de la mission
-14- pouvoir réaliser une série
+16- update an entry
+17- reset correctly (each modif, each day change, each delete)
 
 cliquer sur le résultat change le résultat
 cliquer sur le cadrant ouvre l'overlay

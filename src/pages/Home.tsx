@@ -22,6 +22,7 @@ class Home extends React.Component {
     selectedDate: new Date(),
     showBottomSheet: false,
     taskId: 0,
+    missionId: 0,
     showDialog: false
   }
 
@@ -33,7 +34,7 @@ class Home extends React.Component {
   }
 
   bottomButtons = [
-    { title: 'Delete task', icon: "trash-outline", onPress: () => {}},
+    { title: 'Delete task', icon: "trash-outline", onPress: () => this.db.removeMission(this.state.missionId)},
     { title: 'Next action', icon: "trash-outline" },
     {
       title: 'Cancel',
@@ -120,8 +121,8 @@ class Home extends React.Component {
     this.setState({ showDialog: show})
   }
 
-  openBottomSheet (value: boolean, TaskId?: string) {
-    this.setState({showBottomSheet: value, taskId: TaskId})
+  openBottomSheet (value: boolean, MissionId?: string) {
+    this.setState({showBottomSheet: value, missionId: MissionId})
   }
 
 

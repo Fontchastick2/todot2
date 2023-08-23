@@ -100,7 +100,10 @@ class AddTask extends Component {
     }
     data.time = this.state.time;
     data.duration = this.state.duration;
-    data.description = this.state.motives;
+    data.description = (this.state.motives?`Because, ${this.state.motives}.`: "") + 
+    (this.state.preparation?`.\n\nTo prepare myself, I will ${this.state.preparation}.`: "")+ 
+    (this.state.distractions?`\n\nI must be aware of: ${this.state.distractions}.`: "") +
+    (this.state.overcome?`\n\nReason why I should: ${this.state.overcome}`: "");
     this.db.addMission(data)
   }
 

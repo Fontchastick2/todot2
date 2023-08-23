@@ -91,13 +91,14 @@ class AddTask extends Component {
   };
 
   addMission() {
-    let data = new Mission("I will "+this.state.title);
-    data.from = this.props.route.params.date;
-    data.to = this.props.route.params.date;
+    let data = new Mission(this.state.title);
+    data.from = new Date(this.props.route.params.date);
+    data.to = new Date(this.props.route.params.date);
     if(this.state.repeat === true){
       data.from = this.state.from;
       data.to = this.state.to;
     }
+    data.time = this.state.time;
     data.duration = this.state.duration;
     data.description = this.state.motives;
     this.db.addMission(data)

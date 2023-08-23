@@ -8,13 +8,13 @@ export class Database {
         this.db = db;
         db.transaction(function (tx) { 
             tx.executeSql('BEGIN TRANSACTION'); 
-            //tx.executeSql('DROP TABLE MISSIONS'); 
             // tx.executeSql('DROP TABLE IF EXISTS DAYS'); 
-            //tx.executeSql('DROP TABLE TASKS'); 
+            // tx.executeSql('DROP TABLE TASKS'); 
+            // tx.executeSql('DROP TABLE MISSIONS'); 
 
             tx.executeSql('CREATE TABLE IF NOT EXISTS DAYS (id unique, log)'); 
-            tx.executeSql('CREATE TABLE IF NOT EXISTS MISSIONS (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, duration INTEGER, description TEXT, startAt TEXT, endAt TEXt)');//from CHAR 12, to CHAR 12)'); 
-            tx.executeSql('CREATE TABLE IF NOT EXISTS TASKS (id INTEGER PRIMARY KEY AUTOINCREMENT, dayId TEXT, missionId INTEGER, status TEXT)'); 
+            tx.executeSql('CREATE TABLE IF NOT EXISTS MISSIONS (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, time TEXT, duration INTEGER, description TEXT, startAt TEXT, endAt TEXt, deleted INTEGER)');//from CHAR 12, to CHAR 12)'); 
+            tx.executeSql('CREATE TABLE IF NOT EXISTS TASKS (taskId INTEGER PRIMARY KEY AUTOINCREMENT, dayId TEXT, missionId INTEGER, status TEXT)'); 
             tx.executeSql('COMMIT'); 
          });
          
@@ -25,11 +25,11 @@ export class Database {
             tx.executeSql(`INSERT INTO TASKS VALUES (${task.id}, ${task.title}, ${task.duration}, ${task.description}, 0, ${task.from}, ${task.to}, ${task.days})`); 
         });
     }
-//WHERE dayId = ? INNER JOIN MISSIONS ON MISSIONS.id = TASKS.missionId
+
     getTasks(day: string): Promise<any> {
         return new Promise((resolve, reject) => {
             this.db.transaction(function (tx) { 
-                tx.executeSql('SELECT * FROM TASKS INNER JOIN MISSIONS ON MISSIONS.id = TASKS.missionId WHERE dayId = ?',[day], (_, { rows }) =>{
+                tx.executeSql('SELECT * FROM TASKS INNER JOIN MISSIONS ON MISSIONS.id = TASKS.missionId WHERE dayId = ? AND deleted = 0',[day], (_, { rows }) =>{
                     console.log(JSON.stringify(rows))
                     resolve(rows);
                 }, (error) => {
@@ -37,6 +37,19 @@ export class Database {
                 }); 
             });
         })
+    }
+
+    updateTaskStatut(taskId: number, statut: TaskStatut) {
+        this.db.transaction(function (tx) { 
+            tx.executeSql('UPDATE TASKS SET status = ? WHERE taskId = ?', [statut, taskId]); 
+        });
+        console.log(taskId, statut)
+    }
+
+    removeMission(missionId: any) {
+        this.db.transaction(function (tx) { 
+            tx.executeSql('UPDATE MISSIONS SET deleted = 0 WHERE id = ?', [missionId] ); 
+        });
     }
 
     addDay(day: Day) {
@@ -68,7 +81,7 @@ export class Database {
     addMission(task: Mission) {
         console.log(task)
         this.db.transaction(function (tx) { 
-            tx.executeSql('INSERT INTO MISSIONS (title, duration, description, startAt, endAt) VALUES (?, ?, ?, ?, ?)', [task.title, task.duration!, task.description!, task.from.toDateString(), task.to.toDateString()],
+            tx.executeSql('INSERT INTO MISSIONS (title, time, duration, description, startAt, endAt, deleted) VALUES (?, ?, ?, ?, ?, 0)', [task.title, task.time!, task.duration!, task.description!, task.from.toDateString(), task.to.toDateString()],
                 function (tx, event) {
                     let end = new Date(task.to)
                     if(event.insertId){
@@ -105,7 +118,9 @@ export class Day{
 
 export class Mission{
     id: string = "";
+    taskId: number = 0;
     title: string;
+    time?: string;
     duration?: number; 
     description?: string;
     from: Date =new Date(); 
@@ -113,9 +128,8 @@ export class Mission{
     days?: any[];
     status= TaskStatut.PENDING;
 
-    constructor(title: string, ) {
+    constructor(title: string) {
         this.title= title;
-
     }
 }
 

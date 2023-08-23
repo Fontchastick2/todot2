@@ -2,10 +2,12 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Button, Dimensions } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Database, Day, Mission } from '../services/database.service';
-import { BottomSheet } from '@rneui/themed';
+import { Database, Day, Mission, TaskStatut } from '../services/database.service';
+import { BottomSheet } from 'react-native-btr';
+import { Dialog } from "react-native-simple-dialogs";
 
 import * as SQLite from 'expo-sqlite'
+import TaskInfo from '../components/Task-Info';
 
 const screenWidth= Dimensions.get('window').width;
 const screenHeight= Dimensions.get('screen').height;
@@ -14,8 +16,13 @@ const dab = SQLite.openDatabase('mydb', '1.0', 'Test DB', 2 * 1024 * 1024) // re
 class Home extends React.Component {
   db = new Database(dab);
   tasks: Mission[]= [];
+  selectedtask: Mission = new Mission("");
+
   state = {
-    selectedDate: new Date()
+    selectedDate: new Date(),
+    showBottomSheet: false,
+    taskId: 0,
+    showDialog: false
   }
 
   constructor(props:any) {
@@ -24,6 +31,18 @@ class Home extends React.Component {
     this.initialise()
 
   }
+
+  bottomButtons = [
+    { title: 'Delete task', icon: "trash-outline", onPress: () => {}},
+    { title: 'Next action', icon: "trash-outline" },
+    {
+      title: 'Cancel',
+      backgroundColor: 'red',
+      color: 'white',
+      icon: "close-outline",
+      onPress: () => this.setState({showBottomSheet: false}),
+    },
+  ];
 
   initialise() {
     //this.db.getMissions();
@@ -69,6 +88,42 @@ class Home extends React.Component {
     })
   }
 
+  getTaskIcon(task: Mission) {
+    switch (task.status) {
+      case TaskStatut.DONE:
+        return <Ionicons name="checkmark-circle-outline" size={32} color="green" />
+      case TaskStatut.FAILED:
+        return <Ionicons name="close-circle-outline" size={32} color="red" />
+        case TaskStatut.PENDING:
+          return <Ionicons name="ellipsis-horizontal-circle-outline" size={32} color="orange" />
+    }
+  }
+
+  changeTaskStatut = (task: Mission) => {
+    let status: TaskStatut;
+    switch (task.status) {
+      case TaskStatut.DONE:
+        status = TaskStatut.FAILED;
+        break;
+      case TaskStatut.FAILED:
+        status = TaskStatut.PENDING
+        break;
+      case TaskStatut.PENDING:
+        status = TaskStatut.DONE
+        break;
+    }
+    this.db.updateTaskStatut(task.taskId, status)
+  }
+
+  openDialog = (show: boolean, task?: Mission) => {
+    this.selectedtask = task!;
+    this.setState({ showDialog: show})
+  }
+
+  openBottomSheet (value: boolean, TaskId?: string) {
+    this.setState({showBottomSheet: value, taskId: TaskId})
+  }
+
 
   render() {
     return (
@@ -96,15 +151,53 @@ class Home extends React.Component {
         </View>
         <View style={styles.tasks}>
         {this.tasks.map((task) => (
-          <TouchableOpacity style={styles.task}>
-            <Text>{task.title}</Text>
-          </TouchableOpacity>
+          <View style={styles.task} >
+            <TouchableOpacity onPress={() => this.changeTaskStatut(task)} style={{top: 10, left: 5}}>
+              {this.getTaskIcon(task)}
+            </TouchableOpacity>
+            <TouchableOpacity 
+            onPress={() => this.openDialog(true, task)} 
+            onLongPress={() => this.openBottomSheet(true, task.id)} 
+            style={{width: "100%", padding: 10}}>
+              <Text style={{fontWeight: 600, fontSize: 15}}>I will {task.title}</Text>
+              {task.description !== "" && <Text style={{ fontSize: 13}}>because, {task.description}</Text> }
+              
+            </TouchableOpacity>
+          </View>
         ))}
         </View>
-        <TouchableOpacity         onPress={() => this.props.navigation.navigate('AddTask', {date: new Date().toDateString()})}
+        <TouchableOpacity onPress={() => this.props.navigation.navigate('AddTask', {date: new Date().toDateString()})}
  style={{width: 26, height: 26, borderRadius: 13, backgroundColor: "#525252", position: "absolute", bottom: 70, left: screenWidth * .5 -13 }}>
           <Ionicons name="add-outline" size={26} color="#67ADFF" style={{position: "relative", bottom: 1, left: 1}}/>
         </TouchableOpacity>
+
+
+        <Dialog
+          animationType="fade"
+          onTouchOutside={ () => this.openDialog(false) }
+          visible={ this.state.showDialog }
+          dialogStyle={{borderRadius: 25, borderColor: "gray", borderWidth: 4}}
+        >
+          <TaskInfo task={this.selectedtask}></TaskInfo>
+        </Dialog>
+
+        <BottomSheet
+          visible={this.state.showBottomSheet}>
+          <View style={styles.bottomNavigationView}>
+            <Text
+              style={{
+                textAlign: 'center',
+                padding: 20,
+                fontSize: 20,
+              }}>
+              Task {this.state.taskId}
+            </Text>
+              {this.bottomButtons.map( button => <TouchableOpacity onPress={button.onPress} style={{flexDirection: "row", alignItems: "center", paddingVertical: 10, backgroundColor: button.backgroundColor}}>
+                <Ionicons name={button.icon} size={26} color={button.color} style={{marginHorizontal: 15}}/>
+                <Text style={{fontSize: 22, color: button.color!}}>{button.title}</Text>
+              </TouchableOpacity>)}
+          </View>
+        </BottomSheet>
       </View>
 
     )
@@ -129,11 +222,16 @@ const styles = StyleSheet.create({
     borderRadius: 15,
   },
   task: {
-    padding: 10,
     backgroundColor: "white",
     margin: 5,
+    flexDirection: "row",
     borderRadius: 6
-  }
+  },
+  bottomNavigationView: {
+    backgroundColor: '#fff',
+    width: '100%',
+    height: 250,
+  },
 });
 export default Home
 // Styles are removed purpose-fully 

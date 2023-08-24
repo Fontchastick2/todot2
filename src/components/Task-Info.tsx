@@ -16,7 +16,7 @@ function TaskInfo(props: any) {
 
     console.log(props.task)
 
-  return (    
+    return (    
     <View style={{backgroundColor:"white", height:  300 }}>
         <Text style={{fontSize: 24, textAlign: "center", fontWeight: 600}}>task description</Text>
         <View style={{flexDirection: "row", justifyContent: "space-evenly"}}>
@@ -31,9 +31,13 @@ function TaskInfo(props: any) {
         </View>
         <ScrollView>
             <Text> 
-                at {props.task.time || " some point "} I will {props.task.title}.
 
-                I do this, {props.task.description}
+                At {props.task.time || " some point "} I will {props.task.title}{props.task.duration && ` during ${props.task.duration} minutes`}.
+
+                {props.task.description && `I do this, because ${props.task.description}. \n`}
+                {props.task.preparation && `To prepare myself, I will ${props.task.preparation}. \n`}
+                {props.task.distraction && `I should be aware of: ${props.task.distraction}. \n`}
+                {props.task.overcome && `I should be aware of: ${props.task.overcome}.`}
             </Text>
             
         </ScrollView>
@@ -58,7 +62,7 @@ function TaskInfo(props: any) {
                 <Text style={{color: "white"}}>Done</Text>
             </TouchableOpacity>
         </View>
-}
+    }
     </View>);
 }
 

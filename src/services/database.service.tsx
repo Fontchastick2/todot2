@@ -13,8 +13,8 @@ export class Database {
             // tx.executeSql('DROP TABLE MISSIONS'); 
 
             tx.executeSql('CREATE TABLE IF NOT EXISTS DAYS (id unique, log)'); 
-            tx.executeSql('CREATE TABLE IF NOT EXISTS MISSIONS (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, time TEXT, duration INTEGER, description TEXT, startAt TEXT, endAt TEXt, deleted INTEGER)');//from CHAR 12, to CHAR 12)'); 
-            tx.executeSql('CREATE TABLE IF NOT EXISTS TASKS (taskId INTEGER PRIMARY KEY AUTOINCREMENT, dayId TEXT, missionId INTEGER, status TEXT)'); 
+            tx.executeSql('CREATE TABLE IF NOT EXISTS MISSIONS (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, time TEXT, duration INTEGER, description TEXT, startAt TEXT, endAt TEXt, preparation TEXT, distraction TEXT, overcome TEXT)');//from CHAR 12, to CHAR 12)'); 
+            tx.executeSql('CREATE TABLE IF NOT EXISTS TASKS (taskId INTEGER PRIMARY KEY AUTOINCREMENT, dayId TEXT, missionId INTEGER, status TEXT, deleted INTEGER)'); 
             tx.executeSql('COMMIT'); 
          });
          
@@ -26,12 +26,24 @@ export class Database {
         });
     }
 
+    getTask(taskId: string): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.db.transaction(function (tx) { 
+                tx.executeSql('SELECT * FROM TASKS INNER JOIN MISSIONS ON MISSIONS.id = TASKS.missionId WHERE taskId = ?',[taskId], (_, { rows }) =>{
+                    resolve(rows._array[0]);
+                }, (error) => {
+                    reject(error);
+                }); 
+            });
+        })
+    }
+
     getTasks(day: string): Promise<any> {
         return new Promise((resolve, reject) => {
             this.db.transaction(function (tx) { 
                 tx.executeSql('SELECT * FROM TASKS INNER JOIN MISSIONS ON MISSIONS.id = TASKS.missionId WHERE dayId = ? AND deleted = 0',[day], (_, { rows }) =>{
                     console.log(JSON.stringify(rows))
-                    resolve(rows);
+                    resolve(rows._array);
                 }, (error) => {
                     reject(error);
                 }); 
@@ -46,10 +58,9 @@ export class Database {
         console.log(taskId, statut)
     }
 
-    removeMission(missionId: any) {
-        console.log(missionId)
+    removeMission(taskId: any) {
         this.db.transaction(function (tx) { 
-            tx.executeSql('UPDATE MISSIONS SET deleted = 1 WHERE id = ?', [missionId], ()=> {}, (error) => {console.log(error)} ); 
+            tx.executeSql('UPDATE TASKS SET deleted = 1 WHERE id = ?', [taskId], ()=> {}, (error) => {console.log(error)} ); 
         });
     }
 
@@ -82,17 +93,24 @@ export class Database {
     addMission(task: Mission) {
         console.log(task)
         this.db.transaction(function (tx) { 
-            tx.executeSql('INSERT INTO MISSIONS (title, time, duration, description, startAt, endAt, deleted) VALUES (?, ?, ?, ?, ?, ?, 0)', [task.title, task.time!, task.duration!, task.description!, task.from.toDateString(), task.to.toDateString()],
+            tx.executeSql('INSERT INTO MISSIONS (title, time, duration, description, startAt, endAt, preparation, distraction, overcome) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [task.title, task.time?.toString()!, task.duration!, task.description!, task.from.toString(), task.to.toString(), task.preparation!, task.distraction!, task.overcome!],
                 function (tx, event) {
                     let end = new Date(task.to)
                     if(event.insertId){
-                        for(let start = new Date(task.from); start < end || start.toDateString() === end.toDateString() ; start = new Date(start.getTime() + 86400000)){
+                        for(let start = new Date(task.from); start < end || start.toString() === end.toString() ; start = new Date(start.getTime() + 86400000)){
                             console.log(start)
-                            tx.executeSql('INSERT INTO TASKS (dayId, missionId, status) VALUES (?, ?, ?)', [start.toDateString(), event.insertId, TaskStatut.PENDING])
+                            tx.executeSql('INSERT INTO TASKS (dayId, missionId, status, deleted) VALUES (?, ?, ?, 0)', [start.toString(), event.insertId, TaskStatut.PENDING],  ()=> {}, (error) => {console.log(error)} )
                         }
                     }
-                }
+                }, (error) => {console.log(error)}
             );
+        });
+    }
+
+    updateMission(task: Mission) {
+        console.log(task)
+        this.db.transaction(function (tx) { 
+            tx.executeSql('UPDATE SET MISSIONS title= ?, time= ?, duration= ?, description= ?, startAt= ?, endAt= ?, preparation= ?, distraction= ?, overcome= ?) WHERE id = ?', [task.title, task.time?.toString()!, task.duration!, task.description!, task.from.toString(), task.to.toString(), task.preparation!, task.distraction!, task.overcome!, task.id]);
         });
     }
 
@@ -121,16 +139,23 @@ export class Mission{
     id: string = "";
     taskId: number = 0;
     title: string;
-    time?: string;
+    time?: Date;
     duration?: number; 
     description?: string;
     from: Date =new Date(); 
     to: Date = new Date();
     days?: any[];
     status= TaskStatut.PENDING;
+    preparation?: string;
+    distraction?: string;
+    overcome?: string;
 
-    constructor(title: string) {
+    constructor(title: string, date?: string) {
         this.title= title;
+        if(date){
+            this.from =new Date(date); 
+            this.to = new Date(date);
+        }
     }
 }
 

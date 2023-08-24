@@ -34,8 +34,8 @@ class Home extends React.Component {
   }
 
   bottomButtons = [
-    { title: 'Delete task', icon: "trash-outline", onPress: () => this.db.removeMission(this.state.missionId)},
-    { title: 'Next action', icon: "trash-outline" },
+    { title: 'Update Task', icon: "pencil-outline", onPress: () => {this.props.navigation.navigate('AddTask', {taskId: this.state.taskId}); this.setState({showBottomSheet: false})} },
+    { title: 'Delete task', icon: "trash-outline", onPress: () => {this.db.removeMission(this.state.taskId); this.setState({showBottomSheet: false})}},
     {
       title: 'Cancel',
       backgroundColor: 'red',
@@ -69,22 +69,15 @@ class Home extends React.Component {
 
   componentDidMount(){
     this.db.getTasks(this.state.selectedDate.toDateString()).then(value => {
-      this.tasks = value._array;
+      this.tasks = value;
       this.forceUpdate()
     })
-  }
-
-  componentDidUpdate(prev: any, next: any){
-    if(prev.selectedDate !== prev.selectedDate){
-    }else{
-      
-    }
   }
 
   changeDate(day: number) {
     this.setState((prev: any) => ({selectedDate: new Date(prev.selectedDate.setDate(prev.selectedDate.getDate() + day))}))
     this.db.getTasks(this.state.selectedDate.toDateString()).then(value => {
-      this.tasks = value._array;
+      this.tasks = value;
       this.forceUpdate()
     })
   }
@@ -121,8 +114,8 @@ class Home extends React.Component {
     this.setState({ showDialog: show})
   }
 
-  openBottomSheet (value: boolean, MissionId?: string) {
-    this.setState({showBottomSheet: value, missionId: MissionId})
+  openBottomSheet (value: boolean, mission?: Mission) {
+    this.setState({showBottomSheet: value, missionId: mission?.id, taskId: mission?.taskId})
   }
 
 
@@ -158,7 +151,7 @@ class Home extends React.Component {
             </TouchableOpacity>
             <TouchableOpacity 
             onPress={() => this.openDialog(true, task)} 
-            onLongPress={() => this.openBottomSheet(true, task.id)} 
+            onLongPress={() => this.openBottomSheet(true, task)} 
             style={{width: "100%", padding: 10}}>
               <Text style={{fontWeight: 600, fontSize: 15}}>I will {task.title}</Text>
               {task.description !== "" && <Text style={{ fontSize: 13}}>because, {task.description}</Text> }

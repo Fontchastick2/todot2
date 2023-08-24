@@ -24,10 +24,10 @@ class AddTask extends Component {
     activeSections: [],
     days: [],
     motives: "",
-    time: "",
+    time: new Date(),
     duration: 0,
     preparation: "",
-    distractions: "",
+    distraction: "",
     overcome: ""
   };
 
@@ -36,6 +36,25 @@ class AddTask extends Component {
   constructor(props: any) {
     super(props)
     this.actualDate = props.route.params.date;
+    console.log(props.route.params.taskId)
+    if(props.route.params.taskId){
+      this.db.getTask(props.route.params.taskId).then( (task: Mission) => {
+        this.setState({
+          title: task.title,
+          from: new Date(task.from) || new Date(),
+          repeat: task.from !== task.to,
+          to: new Date(task.to) || new Date(),
+          activeSections: [],
+          days: [],
+          motives: task.description,
+          time: new Date(task.time!) || new Date(),
+          duration: task.duration,
+          preparation: task.preparation,
+          distraction: task.distraction,
+          overcome: task.overcome
+        })
+      });
+    }
   }
 
   openCalendar (from: boolean) {
@@ -52,7 +71,7 @@ class AddTask extends Component {
     DateTimePickerAndroid.open({
       value: new Date(),
       onChange: (event: any, value: Date | undefined) => {
-        this.setState({time: value?.toDateString()!})
+        this.setState({time: value!})
       },
       mode: "time",
     });
@@ -100,11 +119,16 @@ class AddTask extends Component {
     }
     data.time = this.state.time;
     data.duration = this.state.duration;
-    data.description = (this.state.motives?`Because, ${this.state.motives}.`: "") + 
-    (this.state.preparation?`.\n\nTo prepare myself, I will ${this.state.preparation}.`: "")+ 
-    (this.state.distractions?`\n\nI must be aware of: ${this.state.distractions}.`: "") +
-    (this.state.overcome?`\n\nReason why I should: ${this.state.overcome}`: "");
-    this.db.addMission(data)
+    data.description = this.state.motives!;
+    data.preparation = this.state.preparation!;
+    data.distraction = this.state.distraction!;
+    data.overcome = this.state.overcome!;
+    // if(this.props.route.params.taskId){
+    //   this.db.updateMission(data)
+    // }else{
+    //   console.log("test")
+      this.db.addMission(data)
+    // }
   }
 
   render() {
@@ -116,6 +140,7 @@ class AddTask extends Component {
         <View >
           <Text style={{color: "white"}}>What do you want to do?</Text>
           <TextInput
+          value={this.state.title}
           style={{backgroundColor: "white", borderRadius: 10,}}
           onChangeText={val=> this.setState({title: val})}
           />
@@ -134,6 +159,7 @@ class AddTask extends Component {
         <Text style={{color: "white"}}>Why not do it? what makes it important?</Text>
 
         <TextInput
+        value={this.state.motives}
         style={{backgroundColor: "white", borderRadius: 10, width: screenWidth * 0.9-1}}
         onChangeText={val=> this.setState({motives: val})}
         multiline={true}
@@ -150,7 +176,7 @@ class AddTask extends Component {
           style={{backgroundColor: "white", borderRadius: 10, width: screenWidth * 0.4, flexDirection: "row", alignItems: "center"}}
           onPress={()=>this.openTimer()}>
             <Ionicons name="time-outline" size={26} color="#67ADFF" style={{position: "relative", bottom: 1, left: 3, width: 40}}/>
-            <Text>{this.state.time}</Text>
+            <Text>{this.state.time.toLocaleTimeString()}</Text>
           </TouchableOpacity>
         </View>
 
@@ -160,6 +186,7 @@ class AddTask extends Component {
           style={{backgroundColor: "white", borderRadius: 10, width: screenWidth * 0.4, flexDirection: "row", alignItems: "center"}}>
             <Ionicons name="hourglass-outline" size={26} color="#67ADFF" style={{position: "relative", bottom: 1, left: 3, width: 40}}/>
             <TextInput
+              value={this.state.duration.toString()}
               style={{backgroundColor: "white", borderRadius: 10, width: screenWidth * 0.4-40}}
               onChangeText={val=> this.setState({duration: val})}
               
@@ -175,7 +202,7 @@ class AddTask extends Component {
           style={{backgroundColor: "white", borderRadius: 10, width: screenWidth * 0.4, flexDirection: "row", alignItems: "center"}}
           onPress={()=>this.openCalendar(true)}>
             <Ionicons name="calendar-outline" size={26} color="#67ADFF" style={{position: "relative", bottom: 1, left: 3, width: 40}}/>
-            <Text>{this.state.from.toDateString()}</Text>
+            <Text>{this.state.from.toLocaleDateString()}</Text>
           </TouchableOpacity>
         </View>
 
@@ -185,7 +212,7 @@ class AddTask extends Component {
           style={{backgroundColor: "white", borderRadius: 10, width: screenWidth * 0.4, flexDirection: "row", alignItems: "center"}}
           onPress={()=>this.openCalendar(false)}>
             <Ionicons name="calendar-outline" size={26} color="#67ADFF" style={{position: "relative", bottom: 1, left: 3, width: 40}}/>
-            <Text>{this.state.to.toDateString()}</Text>
+            <Text>{this.state.to.toLocaleDateString()}</Text>
           </TouchableOpacity>
         </View>
       </View>}
@@ -201,34 +228,37 @@ class AddTask extends Component {
         <View>
           <Text style={{color: "white"}}>How do you prepare to?</Text>
           <TextInput
-          style={{backgroundColor: "white", borderRadius: 10, width: screenWidth * 0.9-1}}
-          onChangeText={val=> this.setState({preparation: val})}
-          multiline={true}
-          numberOfLines={3}
+            value={this.state.preparation}
+            style={{backgroundColor: "white", borderRadius: 10, width: screenWidth * 0.9-1}}
+            onChangeText={val=> this.setState({preparation: val})}
+            multiline={true}
+            numberOfLines={3}
           />
         </View>
         <View>
           <Text style={{color: "white"}}>What major distractions?</Text>
           <TextInput
-          style={{backgroundColor: "white", borderRadius: 10, width: screenWidth * 0.9-1}}
-          onChangeText={val=> this.setState({distractions: val})}
-          multiline={true}
-          numberOfLines={3}
+            value={this.state.distraction}
+            style={{backgroundColor: "white", borderRadius: 10, width: screenWidth * 0.9-1}}
+            onChangeText={val=> this.setState({distraction: val})}
+            multiline={true}
+            numberOfLines={3}
           />
         </View>
         <View>
           <Text style={{color: "white"}}>How do you overcome them?</Text>
           <TextInput
-          style={{backgroundColor: "white", borderRadius: 10, width: screenWidth * 0.9-1}}
-          onChangeText={val=> this.setState({overcome: val})}
-          multiline={true}
-          numberOfLines={3}
+            value={this.state.overcome}
+            style={{backgroundColor: "white", borderRadius: 10, width: screenWidth * 0.9-1}}
+            onChangeText={val=> this.setState({overcome: val})}
+            multiline={true}
+            numberOfLines={3}
           />
         </View>
         <TouchableOpacity
         onPress={() => this.addMission()}
         style={styles.roundButton1}>
-        <Text style={{color: "white"}}>get started</Text>
+        <Text style={{color: "white"}}>Save task</Text>
       </TouchableOpacity>
       </ScrollView>
       </View>

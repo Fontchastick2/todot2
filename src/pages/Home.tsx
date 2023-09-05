@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Button, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Button, Dimensions, ImageBackground } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
@@ -142,7 +142,7 @@ class Home extends React.Component {
 
   render() {
     return (
-      <View style={{height: screenHeight, paddingTop: 40}}>
+      <ImageBackground source={require("../../assets/home-back.jpg")} resizeMode="cover" style={{height: screenHeight, paddingTop: 40}}>
         <View style={{flexDirection: 'row', justifyContent: 'space-between', width: screenWidth * 0.8, marginHorizontal: screenWidth * 0.1, marginVertical: 15}}>
         <LinearGradient
         // Background Linear Gradient
@@ -215,8 +215,7 @@ class Home extends React.Component {
               </TouchableOpacity>)}
           </View>
         </BottomSheet>
-      </View>
-
+      </ImageBackground>
     )
   }
 }

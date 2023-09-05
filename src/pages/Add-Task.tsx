@@ -17,6 +17,7 @@ class AddTask extends Component {
   db = new Database(dab);
 
   state = {
+    id: "",
     title: "",
     from: new Date(),
     repeat: false,
@@ -36,10 +37,11 @@ class AddTask extends Component {
   constructor(props: any) {
     super(props)
     this.actualDate = props.route.params.date;
-    console.log(props.route.params.taskId)
-    if(props.route.params.taskId){
-      this.db.getTask(props.route.params.taskId).then( (task: Mission) => {
+    console.log("mission id: "+props.route.params.missionId)
+    if(props.route.params.missionId){
+      this.db.getTask(props.route.params.missionId).then( (task: Mission) => {
         this.setState({
+          id: task.id,
           title: task.title,
           from: new Date(task.from) || new Date(),
           repeat: task.from !== task.to,
@@ -111,8 +113,9 @@ class AddTask extends Component {
 
   addMission() {
     let data = new Mission(this.state.title);
-    data.from = new Date(this.props.route.params.date);
-    data.to = new Date(this.props.route.params.date);
+    data.id = this.state.id;
+    data.from = new Date(this.actualDate);
+    data.to = new Date(this.actualDate);
     if(this.state.repeat === true){
       data.from = this.state.from;
       data.to = this.state.to;
@@ -123,12 +126,12 @@ class AddTask extends Component {
     data.preparation = this.state.preparation!;
     data.distraction = this.state.distraction!;
     data.overcome = this.state.overcome!;
-    // if(this.props.route.params.taskId){
-    //   this.db.updateMission(data)
-    // }else{
-    //   console.log("test")
+    if(this.props.route.params.taskId){
+      console.log(data)
+      this.db.updateMission(data)
+    }else{
       this.db.addMission(data)
-    // }
+    }
   }
 
   render() {

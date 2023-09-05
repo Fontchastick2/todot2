@@ -7,13 +7,13 @@ export class Database {
     constructor(db: SQLite.SQLiteDatabase){
         this.db = db;
         db.transaction(function (tx) { 
-            tx.executeSql('BEGIN TRANSACTION'); 
+            // tx.executeSql('BEGIN TRANSACTION'); 
             // tx.executeSql('DROP TABLE IF EXISTS DAYS'); 
             // tx.executeSql('DROP TABLE TASKS'); 
             // tx.executeSql('DROP TABLE MISSIONS'); 
 
             tx.executeSql('CREATE TABLE IF NOT EXISTS DAYS (id unique, log)'); 
-            tx.executeSql('CREATE TABLE IF NOT EXISTS MISSIONS (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, time TEXT, duration INTEGER, description TEXT, startAt TEXT, endAt TEXt, preparation TEXT, distraction TEXT, overcome TEXT)');//from CHAR 12, to CHAR 12)'); 
+            tx.executeSql('CREATE TABLE IF NOT EXISTS MISSIONS (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, time TEXT, duration INTEGER, description TEXT, startAt TEXT, endAt TEXt, preparation TEXT, distraction TEXT, overcome TEXT)');
             tx.executeSql('CREATE TABLE IF NOT EXISTS TASKS (taskId INTEGER PRIMARY KEY AUTOINCREMENT, dayId TEXT, missionId INTEGER, status TEXT, deleted INTEGER)'); 
             tx.executeSql('COMMIT'); 
          });
@@ -29,7 +29,7 @@ export class Database {
     getTask(taskId: string): Promise<any> {
         return new Promise((resolve, reject) => {
             this.db.transaction(function (tx) { 
-                tx.executeSql('SELECT * FROM TASKS INNER JOIN MISSIONS ON MISSIONS.id = TASKS.missionId WHERE taskId = ?',[taskId], (_, { rows }) =>{
+                tx.executeSql('SELECT * FROM MISSIONS WHERE MISSIONS.id = ?',[taskId], (_, { rows }) =>{
                     resolve(rows._array[0]);
                 }, (error) => {
                     reject(error);
@@ -39,6 +39,7 @@ export class Database {
     }
 
     getTasks(day: string): Promise<any> {
+        console.log(day)
         return new Promise((resolve, reject) => {
             this.db.transaction(function (tx) { 
                 tx.executeSql('SELECT * FROM TASKS INNER JOIN MISSIONS ON MISSIONS.id = TASKS.missionId WHERE dayId = ? AND deleted = 0',[day], (_, { rows }) =>{
@@ -51,6 +52,17 @@ export class Database {
         })
     }
 
+    testTasks(){
+        this.db.transaction(function (tx) { 
+            tx.executeSql('SELECT * FROM MISSIONS',[], (_, { rows }) =>{
+                console.log("Missions: "+ JSON.stringify(rows))
+            }); 
+            tx.executeSql('SELECT * FROM TASKS',[], (_, { rows }) =>{
+                console.log("Tasks: "+ JSON.stringify(rows))
+            }); 
+        });
+    }
+
     updateTaskStatut(taskId: number, statut: TaskStatut) {
         this.db.transaction(function (tx) { 
             tx.executeSql('UPDATE TASKS SET status = ? WHERE taskId = ?', [statut, taskId]); 
@@ -59,8 +71,16 @@ export class Database {
     }
 
     removeMission(taskId: any) {
+        console.log(taskId)
         this.db.transaction(function (tx) { 
-            tx.executeSql('UPDATE TASKS SET deleted = 1 WHERE id = ?', [taskId], ()=> {}, (error) => {console.log(error)} ); 
+            tx.executeSql('UPDATE MISSIONS SET deleted = 1 WHERE id = ?', [taskId], ()=> {}, (error) => {console.log(error)} ); 
+        });
+    }
+
+    removeTask(taskId: any) {
+        console.log(taskId)
+        this.db.transaction(function (tx) { 
+            tx.executeSql('UPDATE TASKS SET deleted = 1 WHERE missionId = ?', [taskId], ()=> {}, (error) => {console.log(error)} ); 
         });
     }
 
@@ -92,14 +112,13 @@ export class Database {
 
     addMission(task: Mission) {
         console.log(task)
-        this.db.transaction(function (tx) { 
-            tx.executeSql('INSERT INTO MISSIONS (title, time, duration, description, startAt, endAt, preparation, distraction, overcome) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [task.title, task.time?.toString()!, task.duration!, task.description!, task.from.toString(), task.to.toString(), task.preparation!, task.distraction!, task.overcome!],
+        this.db.transaction(function (tx) { //    ?, ?  
+            tx.executeSql('INSERT INTO MISSIONS (title, startAt, endAt, time, duration, description, preparation, distraction, overcome) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [task.title, task.from.toString(), task.to.toString(),task.time?.toString()!, task.duration!, task.description!, task.distraction!, task.preparation!, task.overcome!],
                 function (tx, event) {
                     let end = new Date(task.to)
                     if(event.insertId){
                         for(let start = new Date(task.from); start < end || start.toString() === end.toString() ; start = new Date(start.getTime() + 86400000)){
-                            console.log(start)
-                            tx.executeSql('INSERT INTO TASKS (dayId, missionId, status, deleted) VALUES (?, ?, ?, 0)', [start.toString(), event.insertId, TaskStatut.PENDING],  ()=> {}, (error) => {console.log(error)} )
+                            tx.executeSql('INSERT INTO TASKS (dayId, missionId, status, deleted) VALUES (?, ?, ?, 0)', [start.toDateString(), event.insertId, TaskStatut.PENDING],  ()=> {}, (error) => {console.log(error)} )
                         }
                     }
                 }, (error) => {console.log(error)}
@@ -109,8 +128,8 @@ export class Database {
 
     updateMission(task: Mission) {
         console.log(task)
-        this.db.transaction(function (tx) { 
-            tx.executeSql('UPDATE SET MISSIONS title= ?, time= ?, duration= ?, description= ?, startAt= ?, endAt= ?, preparation= ?, distraction= ?, overcome= ?) WHERE id = ?', [task.title, task.time?.toString()!, task.duration!, task.description!, task.from.toString(), task.to.toString(), task.preparation!, task.distraction!, task.overcome!, task.id]);
+        this.db.transaction(function (tx) { //  , 
+            tx.executeSql('UPDATE SET MISSIONS title= ?, time= ?, duration= ?, description= ?, startAt= ?, endAt= ?, preparation= ?, distraction= ?, overcome= ? WHERE id = ?', [task.title, task.time?.toString()!, task.duration!, task.description!, task.from.toString(), task.to.toString(), task.preparation!, task.distraction!, task.overcome!, task.id], ()=> {}, (error) => {console.log(error)});
         });
     }
 

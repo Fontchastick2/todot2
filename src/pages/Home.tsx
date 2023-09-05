@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Button, Dimensions } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { Database, Day, Mission, TaskStatut } from '../services/database.service';
 import { BottomSheet } from 'react-native-btr';
 import { Dialog } from "react-native-simple-dialogs";
@@ -29,13 +30,14 @@ class Home extends React.Component {
   constructor(props:any) {
     super(props)
 
-    this.initialise()
+    //this.initialise()
+    //this.db.testTasks()
 
   }
 
   bottomButtons = [
-    { title: 'Update Task', icon: "pencil-outline", onPress: () => {this.props.navigation.navigate('AddTask', {taskId: this.state.taskId}); this.setState({showBottomSheet: false})} },
-    { title: 'Delete task', icon: "trash-outline", onPress: () => {this.db.removeMission(this.state.taskId); this.setState({showBottomSheet: false})}},
+    { title: 'Update Task', icon: "pencil-outline", onPress: () => {this.props.navigation.navigate('AddTask', {date: this.state.selectedDate, missionId: this.state.missionId}); this.setState({showBottomSheet: false})} },
+    { title: 'Delete task', icon: "trash-outline", onPress: () => {this.db.removeTask(this.state.taskId); this.setState({showBottomSheet: false})}},
     {
       title: 'Cancel',
       backgroundColor: 'red',
@@ -46,7 +48,6 @@ class Home extends React.Component {
   ];
 
   initialise() {
-    //this.db.getMissions();
     let today: Day;
     if(this.db.getDay(new Date().toLocaleDateString()) === undefined) {
       today = new Day(new Date().toLocaleDateString(), "Awaiting for results");
@@ -68,15 +69,17 @@ class Home extends React.Component {
   }
 
   componentDidMount(){
-    this.db.getTasks(this.state.selectedDate.toDateString()).then(value => {
-      this.tasks = value;
-      this.forceUpdate()
-    })
+    this.updateTasks(this.state.selectedDate)
   }
 
   changeDate(day: number) {
-    this.setState((prev: any) => ({selectedDate: new Date(prev.selectedDate.setDate(prev.selectedDate.getDate() + day))}))
-    this.db.getTasks(this.state.selectedDate.toDateString()).then(value => {
+    let newDate = new Date(this.state.selectedDate.setDate(this.state.selectedDate.getDate() + day))
+    this.setState({selectedDate: newDate})
+    this.updateTasks(newDate)
+  }
+
+  updateTasks(date: Date){
+    this.db.getTasks(date.toDateString()).then(value => {
       this.tasks = value;
       this.forceUpdate()
     })
@@ -109,6 +112,20 @@ class Home extends React.Component {
     this.db.updateTaskStatut(task.taskId, status)
   }
 
+  openCalendar () {
+    DateTimePickerAndroid.open({
+      value: this.state?.selectedDate || new Date(),
+      onChange: (event: any, value: Date | undefined) => {
+        this.setState({selectedDate: value}, () => {
+          if(value){
+            this.updateTasks(value)
+          }
+        })
+      },
+      mode: "date",
+    });
+  };
+
   openDialog = (show: boolean, task?: Mission) => {
     this.selectedtask = task!;
     this.setState({ showDialog: show})
@@ -133,7 +150,9 @@ class Home extends React.Component {
         </TouchableOpacity>
         </LinearGradient>
 
+        <TouchableOpacity onPress={() => this.openCalendar()}>
           <Text style={{fontSize: 24, fontWeight: '600', color: "rgba(33, 33, 33, 0.76)"}}>{this.getDateString(this.state.selectedDate)}</Text>
+          </TouchableOpacity>
           <LinearGradient
         // Background Linear Gradient
             style={{borderRadius: 10}}
@@ -143,7 +162,7 @@ class Home extends React.Component {
         </TouchableOpacity>
         </LinearGradient>
         </View>
-        <View style={styles.tasks}>
+        <ScrollView style={styles.tasks}>
         {this.tasks.map((task) => (
           <View style={styles.task} >
             <TouchableOpacity onPress={() => this.changeTaskStatut(task)} style={{top: 10, left: 5}}>
@@ -159,9 +178,9 @@ class Home extends React.Component {
             </TouchableOpacity>
           </View>
         ))}
-        </View>
-        <TouchableOpacity onPress={() => this.props.navigation.navigate('AddTask', {date: new Date().toDateString()})}
- style={{width: 26, height: 26, borderRadius: 13, backgroundColor: "#525252", position: "absolute", bottom: 70, left: screenWidth * .5 -13 }}>
+        </ScrollView>
+        <TouchableOpacity onPress={() => this.props.navigation.navigate('AddTask', {date: this.state.selectedDate})}
+          style={{width: 26, height: 26, borderRadius: 13, backgroundColor: "#525252", position: "absolute", bottom: 70, left: screenWidth * .5 -13 }}>
           <Ionicons name="add-outline" size={26} color="#67ADFF" style={{position: "relative", bottom: 1, left: 1}}/>
         </TouchableOpacity>
 

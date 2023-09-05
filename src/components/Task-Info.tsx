@@ -32,7 +32,7 @@ function TaskInfo(props: any) {
         <ScrollView>
             <Text> 
 
-                At {props.task.time || " some point "} I will {props.task.title}{props.task.duration && ` during ${props.task.duration} minutes`}.
+                At {props.task.time || " some point "} I will {props.task.title}{props.task.duration > 0 && ` during ${props.task.duration} minutes`}.
 
                 {props.task.description && `I do this, because ${props.task.description}. \n`}
                 {props.task.preparation && `To prepare myself, I will ${props.task.preparation}. \n`}

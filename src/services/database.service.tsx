@@ -43,7 +43,7 @@ export class Database {
         return new Promise((resolve, reject) => {
             this.db.transaction(function (tx) { 
                 tx.executeSql('SELECT * FROM TASKS INNER JOIN MISSIONS ON MISSIONS.id = TASKS.missionId WHERE dayId = ? AND deleted = 0',[day], (_, { rows }) =>{
-                    console.log(JSON.stringify(rows))
+                    //console.log(JSON.stringify(rows))
                     resolve(rows._array);
                 }, (error) => {
                     reject(error);
@@ -77,11 +77,16 @@ export class Database {
         });
     }
 
-    removeTask(taskId: any) {
-        console.log(taskId)
-        this.db.transaction(function (tx) { 
-            tx.executeSql('UPDATE TASKS SET deleted = 1 WHERE missionId = ?', [taskId], ()=> {}, (error) => {console.log(error)} ); 
-        });
+    removeTask(taskId: number): Promise<void> {
+        return new Promise((resolve, reject) => {
+            this.db.transaction(function (tx) { 
+                tx.executeSql('UPDATE TASKS SET deleted = 1 WHERE taskId = ?', [taskId], () =>{
+                    resolve();
+                }, (error) => {
+                    reject(error);
+                });
+            });
+        })
     }
 
     addDay(day: Day) {
@@ -110,33 +115,47 @@ export class Database {
         });
     }
 
-    addMission(task: Mission) {
-        console.log(task)
-        this.db.transaction(function (tx) { //    ?, ?  
-            tx.executeSql('INSERT INTO MISSIONS (title, startAt, endAt, time, duration, description, preparation, distraction, overcome) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [task.title, task.from.toString(), task.to.toString(),task.time?.toString()!, task.duration!, task.description!, task.distraction!, task.preparation!, task.overcome!],
-                function (tx, event) {
-                    let end = new Date(task.to)
-                    if(event.insertId){
-                        for(let start = new Date(task.from); start < end || start.toString() === end.toString() ; start = new Date(start.getTime() + 86400000)){
-                            tx.executeSql('INSERT INTO TASKS (dayId, missionId, status, deleted) VALUES (?, ?, ?, 0)', [start.toDateString(), event.insertId, TaskStatut.PENDING],  ()=> {}, (error) => {console.log(error)} )
+    addMission(task: Mission): Promise<void> {
+        return new Promise((resolve, reject) => {
+            this.db.transaction(function (tx) { //    ?, ?  
+                tx.executeSql('INSERT INTO MISSIONS (title, startAt, endAt, time, duration, description, preparation, distraction, overcome) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', [task.title, task.from.toString(), task.to.toString(),task.time?.toString()!, task.duration!, task.description!, task.distraction!, task.preparation!, task.overcome!],
+                    function (tx, event) {
+                        let end = new Date(task.to)
+                        if(event.insertId){
+                            for(let start = new Date(task.from); start < end || start.toString() === end.toString() ; start = new Date(start.getTime() + 86400000)){
+                                tx.executeSql('INSERT INTO TASKS (dayId, missionId, status, deleted) VALUES (?, ?, ?, 0)', [start.toDateString(), event.insertId, TaskStatut.PENDING],  ()=> {}, (error) => {console.log(error)} )
+                            }
                         }
+                        resolve();
+                    }, (error) => {
+                        reject(error);
                     }
-                }, (error) => {console.log(error)}
-            );
-        });
+                );
+            });
+        })
     }
 
-    updateMission(task: Mission) {
+    updateMission(task: Mission): Promise<void> {// , time= ?, duration= ?, description= ?, startAt= ?, endAt= ?, preparation= ?, distraction= ?, overcome= ?  ||   task.time?.toString()!, task.duration!, task.description!, task.from.toString(), task.to.toString(), task.preparation!, task.distraction!, task.overcome!,
         console.log(task)
-        this.db.transaction(function (tx) { //  , 
-            tx.executeSql('UPDATE SET MISSIONS title= ?, time= ?, duration= ?, description= ?, startAt= ?, endAt= ?, preparation= ?, distraction= ?, overcome= ? WHERE id = ?', [task.title, task.time?.toString()!, task.duration!, task.description!, task.from.toString(), task.to.toString(), task.preparation!, task.distraction!, task.overcome!, task.id], ()=> {}, (error) => {console.log(error)});
-        });
+        return new Promise((resolve, reject) => {
+            this.db.transaction(function (tx) { //  , 
+                tx.executeSql('UPDATE MISSIONS SET title= ?, time= ?, duration= ?, description= ?, startAt= ?, endAt= ?, preparation= ?, distraction= ?, overcome= ? WHERE id = ?', [task.title, task.time?.toString()!, task.duration!, task.description!, task.from.toString(), task.to.toString(), task.preparation!, task.distraction!, task.overcome!, task.id],/*[task.title, task.id],*/ (tx, results) => {
+                    if (results.rowsAffected > 0) {
+                    console.log('Update successful');
+                    } else {
+                    console.log('No rows were updated');
+                    }
+                    resolve();
+                }, (error) => {
+                    reject(error);
+                });
+            });
+        })
     }
 
     getMissions() {
         this.db.transaction(function (tx) { 
             tx.executeSql('SELECT * FROM MISSIONS',[], (_, { rows }) =>{
-                console.log(JSON.stringify(rows))
                 return rows;
             }); 
         });

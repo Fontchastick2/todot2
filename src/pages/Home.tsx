@@ -37,7 +37,7 @@ class Home extends React.Component {
 
   bottomButtons = [
     { title: 'Update Task', icon: "pencil-outline", onPress: () => {this.props.navigation.navigate('AddTask', {date: this.state.selectedDate, missionId: this.state.missionId}); this.setState({showBottomSheet: false})} },
-    { title: 'Delete task', icon: "trash-outline", onPress: () => {this.db.removeTask(this.state.taskId); this.setState({showBottomSheet: false})}},
+    { title: 'Delete task', icon: "trash-outline", onPress: () => {this.db.removeTask(this.state.taskId).then(()=>this.updateTasks()); this.setState({showBottomSheet: false})}},
     {
       title: 'Cancel',
       backgroundColor: 'red',
@@ -69,7 +69,11 @@ class Home extends React.Component {
   }
 
   componentDidMount(){
-    this.updateTasks(this.state.selectedDate)
+    this.updateTasks()
+    this.props.navigation.addListener('focus', () => {
+      this.updateTasks()
+    });
+
   }
 
   changeDate(day: number) {
@@ -78,8 +82,8 @@ class Home extends React.Component {
     this.updateTasks(newDate)
   }
 
-  updateTasks(date: Date){
-    this.db.getTasks(date.toDateString()).then(value => {
+  updateTasks(date?: Date){
+    this.db.getTasks((date || this.state.selectedDate).toDateString()).then(value => {
       this.tasks = value;
       this.forceUpdate()
     })

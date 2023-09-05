@@ -17,7 +17,7 @@ class AddTask extends Component {
   db = new Database(dab);
 
   state = {
-    id: "",
+    id: null,
     title: "",
     from: new Date(),
     repeat: false,
@@ -126,11 +126,14 @@ class AddTask extends Component {
     data.preparation = this.state.preparation!;
     data.distraction = this.state.distraction!;
     data.overcome = this.state.overcome!;
-    if(this.props.route.params.taskId){
-      console.log(data)
-      this.db.updateMission(data)
+    if(this.state.id){
+      this.db.updateMission(data).then(() => {
+        this.props.navigation.goBack()
+      })
     }else{
-      this.db.addMission(data)
+      this.db.addMission(data).then(() => {
+        this.props.navigation.goBack()
+      })
     }
   }
 

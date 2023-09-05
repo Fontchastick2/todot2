@@ -22,10 +22,11 @@ class App extends React.Component {
   render() {
     return (
       <NavigationContainer>
-      <Stack.Navigator initialRouteName="Intro" screenOptions={{headerShown: false}}>
-        <Stack.Screen name='Intro' component={Intro}/>
-        <Stack.Screen name="Home" component={Home} />
-        <Stack.Screen name="AddTask" component={AddTask}/>
+      <Stack.Navigator initialRouteName="Intro">
+        <Stack.Screen name='Intro' component={Intro} options={{headerShown: false}}/>
+        <Stack.Screen name="Home" component={Home} options={{headerShown: false}}/>
+        <Stack.Screen name="AddTask" component={AddTask} options={{headerShown: false}}/>
+        {/*options={{headerStyle: { backgroundColor: 'black'}, headerTitleStyle: {color: 'white'}}}*/}
       </Stack.Navigator>
     </NavigationContainer>
     )

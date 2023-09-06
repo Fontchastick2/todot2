@@ -14,8 +14,8 @@ function Intro({ navigation }) {
       >
       </LinearGradient>
       <View style={{position: "absolute", top: 80}}>
-        <Text style={{zIndex: 4, fontSize: 26, fontWeight: 600, color: "white"}}>T
-        <Image source={require('../../assets/icon.png')}></Image>
+        <Text style={{zIndex: 4, fontSize: 32, fontWeight: 600, color: "white"}}>T
+        <Image source={require('../../assets/icon.png')} style={{width: 20, height: 20}}></Image>
         doT</Text>
 
       </View>

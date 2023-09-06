@@ -12,7 +12,6 @@ export class Database {
             // tx.executeSql('DROP TABLE TASKS'); 
             // tx.executeSql('DROP TABLE MISSIONS'); 
 
-            tx.executeSql('CREATE TABLE IF NOT EXISTS DAYS (id unique, log)'); 
             tx.executeSql('CREATE TABLE IF NOT EXISTS MISSIONS (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT, time TEXT, duration INTEGER, description TEXT, startAt TEXT, endAt TEXt, preparation TEXT, distraction TEXT, overcome TEXT)');
             tx.executeSql('CREATE TABLE IF NOT EXISTS TASKS (taskId INTEGER PRIMARY KEY AUTOINCREMENT, dayId TEXT, missionId INTEGER, status TEXT, deleted INTEGER)'); 
             tx.executeSql('COMMIT'); 
@@ -73,11 +72,17 @@ export class Database {
         })
     }
 
-    removeMission(taskId: any) {
+    removeMission(taskId: any): Promise<void> {
         console.log(taskId)
-        this.db.transaction(function (tx) { 
-            tx.executeSql('UPDATE MISSIONS SET deleted = 1 WHERE id = ?', [taskId], ()=> {}, (error) => {console.log(error)} ); 
-        });
+        return new Promise((resolve, reject) => {
+            this.db.transaction(function (tx) { 
+                tx.executeSql('UPDATE TASKS SET deleted = 1 WHERE missionId = ?', [taskId], () =>{
+                    resolve();
+                }, (error) => {
+                    reject(error);
+                } ); 
+            });
+        })
     }
 
     removeTask(taskId: number): Promise<void> {

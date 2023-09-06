@@ -11,14 +11,23 @@ function Intro({ navigation }) {
       <LinearGradient
         colors={['rgba(225,225,225,1)', 'rgba(225,225,225,1)','rgba(103,173,225,1)']}
         style={{height: screenWidth * 1.4, width: screenWidth * 1.4, borderRadius: screenWidth * 0.7, position: "absolute", left: -screenWidth*0.2, zIndex: 3, top: -screenWidth * 1.05}}
-      />
+      >
+      </LinearGradient>
+      <View style={{position: "absolute", top: 80}}>
+        <Text style={{zIndex: 4, fontSize: 26, fontWeight: 600, color: "white"}}>T
+        <Image source={require('../../assets/icon.png')}></Image>
+        doT</Text>
+
+      </View>
+
     <Image source={require('../../assets/intro.png')}  style={styles.picture} alt=""/>
     <View >
-        <Text style={styles.title}>Welcome to Habitious</Text>
+        <Text style={styles.title}>Welcome to Todot</Text>
         <Text style={styles.text}>
-            Lorem, ipsum dolor sit amet consectetur adipisicing elit. 
-            Temporibus repudiandae amet tempora quaerat totam omnis nobis in, ab recusandae, sint, est officiis eligendi quae?
-             Reiciendis natus optio delectus quo repudiandae!
+            Are you struggling with <Text style={{fontWeight: 600}}>procrastination</Text>?{"\n"}
+            Do you wish you were <Text style={{fontWeight: 600}}>more productive</Text>?{"\n"}
+            You sometimes lack <Text style={{fontWeight: 600}}>motivation</Text>? {"\n"}
+            Then please let me help you!
         </Text>
     </View>
 
@@ -44,7 +53,7 @@ const styles = StyleSheet.create({
     picture: {
         width: 378, 
         height: 252,
-        marginTop: screenWidth * 0.4
+        marginTop: screenWidth * 0.2
     },
     text: {
         width: 250, 

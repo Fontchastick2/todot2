@@ -63,11 +63,14 @@ export class Database {
         });
     }
 
-    updateTaskStatut(taskId: number, statut: TaskStatut) {
-        this.db.transaction(function (tx) { 
-            tx.executeSql('UPDATE TASKS SET status = ? WHERE taskId = ?', [statut, taskId]); 
-        });
-        console.log(taskId, statut)
+    updateTaskStatut(taskId: number, statut: TaskStatut): Promise<void> {
+        return new Promise((resolve, reject) => {
+            this.db.transaction(function (tx) { 
+                tx.executeSql('UPDATE TASKS SET status = ? WHERE taskId = ?', [statut, taskId], () => { resolve()}, (error) => {
+                    reject(error);
+                }); 
+            });
+        })
     }
 
     removeMission(taskId: any) {

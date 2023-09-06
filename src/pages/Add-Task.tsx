@@ -6,7 +6,6 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Database, Mission } from '../services/database.service';
 import { FOR_EVER } from '../data/vars';
 import * as SQLite from 'expo-sqlite'
-import AccordionListItem from '../components/AccordionListItem';
 
 
 const screenWidth = Dimensions.get('window').width;
@@ -143,9 +142,15 @@ class AddTask extends Component {
     return (
       <ImageBackground source={require("../../assets/add-back.jpg")} resizeMode="cover" style={{ height: screenHeight, width: screenWidth, paddingHorizontal: screenWidth * 0.05 }}>
         <View style={{ height: Dimensions.get('window').height, paddingTop: 40}}>
+          <View style={{ height: 30, flexDirection: "row"}}>
+            <TouchableOpacity onPress={() => this.props.navigation.goBack()}>
+              <Ionicons name="arrow-back-outline" size={26} color="black" style={{ position: "relative", bottom: 1, left: 3, width: 40 }} />
+            </TouchableOpacity>
+              <Text style={{fontSize: 18}}>{this.state.id? "Edit task" : "New task"}</Text>
+          </View>
           <ScrollView>
             <View style={{marginVertical: 8}}>
-              <Text style={{ color: "black", textAlign: "center" }}>What do you want to do?</Text>
+              <Text style={{ textAlign: "center" }}>What do you want to do?</Text>
               <TextInput
                 value={this.state.title}
                 style={{ backgroundColor: "white", borderRadius: 10, }}
@@ -153,11 +158,11 @@ class AddTask extends Component {
               />
             </View>
             <TouchableOpacity onPress={() => this.setState({ openedSection: sections.WHY }) } style={styles.accordion}>
-              <Text style={{ color: "white" }}>Why</Text>
+              <Text style={{color: "white"}}>Why</Text>
             </TouchableOpacity>
             {this.state.openedSection === sections.WHY &&
               <View>
-                <Text style={{ color: "white" }}>Why not do it? what makes it important?</Text>
+                <Text>Why not do it? what makes it important?</Text>
 
                 <TextInput
                   value={this.state.motives}
@@ -168,13 +173,13 @@ class AddTask extends Component {
                 />
               </View>}
             <TouchableOpacity onPress={() => this.setState({ openedSection: sections.WHEN })} style={styles.accordion}>
-              <Text style={{ color: "white" }}>When</Text>
+              <Text style={{color: "white"}}>When</Text>
             </TouchableOpacity>
             {this.state.openedSection === sections.WHEN &&
               <View>
                 <View style={{ flexDirection: "row", justifyContent: "space-between", width: screenWidth * 0.9 - 1 }}>
                   <View>
-                    <Text style={{ color: "white" }}>At:</Text>
+                    <Text>At:</Text>
                     <TouchableOpacity
                       style={{ backgroundColor: "white", borderRadius: 10, width: screenWidth * 0.4, flexDirection: "row", alignItems: "center" }}
                       onPress={() => this.openTimer()}>
@@ -184,7 +189,7 @@ class AddTask extends Component {
                   </View>
 
                   <View>
-                    <Text style={{ color: "white" }}>Duration (in minutes):</Text>
+                    <Text>Duration (in minutes):</Text>
                     <View
                       style={{ backgroundColor: "white", borderRadius: 10, width: screenWidth * 0.4, flexDirection: "row", alignItems: "center" }}>
                       <Ionicons name="hourglass-outline" size={26} color="#67ADFF" style={{ position: "relative", bottom: 1, left: 3, width: 40 }} />
@@ -201,7 +206,7 @@ class AddTask extends Component {
                 {this.state.repeat &&
                   <View style={{ flexDirection: "row", justifyContent: "space-between", width: screenWidth * 0.9 - 1 }}>
                     <View>
-                      <Text style={{ color: "white" }}>From:</Text>
+                      <Text>From:</Text>
                       <TouchableOpacity
                         style={{ backgroundColor: "white", borderRadius: 10, width: screenWidth * 0.4, flexDirection: "row", alignItems: "center" }}
                         onPress={() => this.openCalendar(true)}>
@@ -211,7 +216,7 @@ class AddTask extends Component {
                     </View>
 
                     <View>
-                      <Text style={{ color: "white" }}>To:</Text>
+                      <Text>To:</Text>
                       <TouchableOpacity
                         style={{ backgroundColor: "white", borderRadius: 10, width: screenWidth * 0.4, flexDirection: "row", alignItems: "center" }}
                         onPress={() => this.openCalendar(false)}>
@@ -229,12 +234,12 @@ class AddTask extends Component {
 
 
             <TouchableOpacity onPress={() => this.setState({ openedSection: sections.HOW })} style={styles.accordion}>
-              <Text style={{ color: "white" }}>How</Text>
+              <Text style={{color: "white"}}>How</Text>
             </TouchableOpacity>
             {this.state.openedSection === sections.HOW &&
               <View>
                 <View>
-                  <Text style={{ color: "white" }}>How do you prepare to?</Text>
+                  <Text>How do you prepare to?</Text>
                   <TextInput
                     value={this.state.preparation}
                     style={{ backgroundColor: "white", borderRadius: 10, width: screenWidth * 0.9 - 1 }}
@@ -244,7 +249,7 @@ class AddTask extends Component {
                   />
                 </View>
                 <View>
-                  <Text style={{ color: "white" }}>What major distractions?</Text>
+                  <Text>What major distractions?</Text>
                   <TextInput
                     value={this.state.distraction}
                     style={{ backgroundColor: "white", borderRadius: 10, width: screenWidth * 0.9 - 1 }}
@@ -254,7 +259,7 @@ class AddTask extends Component {
                   />
                 </View>
                 <View>
-                  <Text style={{ color: "white" }}>How do you overcome them?</Text>
+                  <Text>How do you overcome them?</Text>
                   <TextInput
                     value={this.state.overcome}
                     style={{ backgroundColor: "white", borderRadius: 10, width: screenWidth * 0.9 - 1 }}
@@ -267,9 +272,10 @@ class AddTask extends Component {
               </View>}
               <View style={{justifyContent: 'center', alignItems: 'center'}}>
                 <TouchableOpacity
+                  disabled={!this.state.title}
                   onPress={() => this.addMission()}
-                  style={styles.roundButton1}>
-                  <Text style={{ color: "white" }}>Save task</Text>
+                  style={[!this.state.title?styles.disabledButton:styles.enabledButton, styles.roundButton1]}>
+                  <Text style={{color: "white"}}>Save task</Text>
                 </TouchableOpacity>
               </View>
           </ScrollView>
@@ -287,8 +293,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 10,
     borderRadius: 100,
-    backgroundColor: '#1882FF',
     marginTop: 8
+  },
+  disabledButton: {
+    backgroundColor: '#c2c2c2',
+  },
+  enabledButton: {
+    backgroundColor: 'gray',
   },
   accordion: {
     backgroundColor: "#000000",

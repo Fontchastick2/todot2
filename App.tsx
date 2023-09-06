@@ -26,7 +26,6 @@ class App extends React.Component {
         <Stack.Screen name='Intro' component={Intro} options={{headerShown: false}}/>
         <Stack.Screen name="Home" component={Home} options={{headerShown: false}}/>
         <Stack.Screen name="AddTask" component={AddTask} options={{headerShown: false}}/>
-        {/*options={{headerStyle: { backgroundColor: 'black'}, headerTitleStyle: {color: 'white'}}}*/}
       </Stack.Navigator>
     </NavigationContainer>
     )

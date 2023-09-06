@@ -113,7 +113,7 @@ class Home extends React.Component {
         status = TaskStatut.DONE
         break;
     }
-    this.db.updateTaskStatut(task.taskId, status)
+    this.db.updateTaskStatut(task.taskId, status).then(() => this.updateTasks())
   }
 
   openCalendar () {
@@ -195,20 +195,12 @@ class Home extends React.Component {
           visible={ this.state.showDialog }
           dialogStyle={{borderRadius: 25, borderColor: "gray", borderWidth: 4}}
         >
-          <TaskInfo task={this.selectedtask}></TaskInfo>
+          <TaskInfo task={this.selectedtask} close={this.openDialog}></TaskInfo>
         </Dialog>
 
         <BottomSheet
           visible={this.state.showBottomSheet}>
           <View style={styles.bottomNavigationView}>
-            <Text
-              style={{
-                textAlign: 'center',
-                padding: 20,
-                fontSize: 20,
-              }}>
-              Task {this.state.taskId}
-            </Text>
               {this.bottomButtons.map( button => <TouchableOpacity onPress={button.onPress} style={{flexDirection: "row", alignItems: "center", paddingVertical: 10, backgroundColor: button.backgroundColor}}>
                 <Ionicons name={button.icon} size={26} color={button.color} style={{marginHorizontal: 15}}/>
                 <Text style={{fontSize: 22, color: button.color!}}>{button.title}</Text>
@@ -246,7 +238,7 @@ const styles = StyleSheet.create({
   bottomNavigationView: {
     backgroundColor: '#fff',
     width: '100%',
-    height: 250,
+    height: 150,
   },
 });
 export default Home
